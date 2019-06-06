@@ -47,6 +47,7 @@ public class GameEngine extends SurfaceView implements Runnable {
     Sprite player;
     Sprite sparrow;
     Sprite cat;
+    Rect cage;
 
     ArrayList<Square> bullets = new ArrayList<Square>();
 
@@ -74,9 +75,8 @@ public class GameEngine extends SurfaceView implements Runnable {
         // initalize sprites
         this.player = new Sprite(this.getContext(), 50, (VISIBLE_RIGHT - 200), R.drawable.player64);
         this.sparrow = new Sprite(this.getContext(), 500, 200, R.drawable.bird64);
-        Log.d(TAG,"Bottom " + (VISIBLE_BOTTOM - 20));
-        Log.d(TAG,"Right " + (VISIBLE_RIGHT - 20));
         this.cat = new Sprite(this.getContext(), (VISIBLE_BOTTOM - 200), (VISIBLE_RIGHT - 200), R.drawable.cat64);
+
 
     }
 
@@ -136,13 +136,24 @@ public class GameEngine extends SurfaceView implements Runnable {
             // 2. sparrow
             canvas.drawBitmap(this.sparrow.getImage(), this.sparrow.getxPosition(), this.sparrow.getyPosition(), paintbrush);
 
+            //3. cat
             canvas.drawBitmap(this.cat.getImage(), this.cat.getxPosition(), this.cat.getyPosition(), paintbrush);
+
+            //4. Cage
+            paintbrush.setStyle(Paint.Style.STROKE);
+            paintbrush.setColor(Color.RED);
+            int initialLeft = screenWidth - 300;
+            int initialTop = 20;
+            int initialRight = screenWidth - 10;
+            int initialBottom = 90;
+            canvas.drawRect(initialLeft,initialTop, initialRight,initialBottom, paintbrush);
 
             // --------------------------------------------------------
             // draw hitbox on player
             // --------------------------------------------------------
             Rect r = player.getHitbox();
             paintbrush.setStyle(Paint.Style.STROKE);
+            paintbrush.setColor(Color.GREEN);
             canvas.drawRect(r, paintbrush);
 
 
@@ -152,6 +163,7 @@ public class GameEngine extends SurfaceView implements Runnable {
             paintbrush.setTextSize(60);
             paintbrush.setStrokeWidth(5);
             String screenInfo = "Screen size: (" + this.screenWidth + "," + this.screenHeight + ")";
+            paintbrush.setColor(Color.GREEN);
             canvas.drawText(screenInfo, 30, 100, paintbrush);
 
             // --------------------------------
