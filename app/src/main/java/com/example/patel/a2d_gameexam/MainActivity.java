@@ -7,44 +7,40 @@ import android.view.Display;
 
 public class MainActivity extends AppCompatActivity {
 
-    GameEngine game;
+    private GameEngine gameEngine;
+
+    // screen size variables
+    Display display;
+    Point size;
+    int screenHeight;
+    int screenWidth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Get size of the screen
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
+        display = getWindowManager().getDefaultDisplay();
+        size = new Point();
+
         display.getSize(size);
+        screenWidth = size.x;
+        screenHeight = size.y;
 
-        // Initialize the GameEngine object
-        // Pass it the screen size (height & width)
-        game = new GameEngine(this, size.x, size.y);
-
-        // Make GameEngine the view of the Activity
-        setContentView(game);
+        gameEngine = new GameEngine(this, screenWidth, screenHeight);
+        setContentView(gameEngine);
     }
 
-    // Android Lifecycle functions
-    // ----------------------------
 
-    // This function gets run when user switches from the game to some other app on the phone
     @Override
     protected void onPause() {
         super.onPause();
-
-        // Pause the game
-        game.pauseGame();
+        gameEngine.pauseGame();
     }
 
-    // This function gets run when user comes back to the game
     @Override
     protected void onResume() {
         super.onResume();
-
-        // Start the game
-        game.startGame();
+        gameEngine.resumeGame();
     }
 
 }

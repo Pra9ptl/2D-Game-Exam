@@ -1,187 +1,193 @@
 package com.example.patel.a2d_gameexam;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.support.constraint.solver.widgets.Rectangle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import java.util.Random;
+import java.util.ArrayList;
 
 public class GameEngine extends SurfaceView implements Runnable {
+    private final String TAG = "SPARROW";
 
-    // -----------------------------------
-    // ## ANDROID DEBUG VARIABLES
-    // -----------------------------------
-
-    // Android debug variables
-    final static String TAG="PONG-GAME";
-
-    // -----------------------------------
-    // ## SCREEN & DRAWING SETUP VARIABLES
-    // -----------------------------------
-
-    // screen size
-    int screenHeight;
-    int screenWidth;
-
-    // game state
-    boolean gameIsRunning;
-
-    // threading
-    Thread gameThread;
-
+    // game thread variables
+    private Thread gameThread = null;
+    private volatile boolean gameIsRunning;
 
     // drawing variables
-    SurfaceHolder holder;
-    Canvas canvas;
-    Paint paintbrush;
+    private Canvas canvas;
+    private Paint paintbrush;
+    private SurfaceHolder holder;
 
+    // Screen resolution varaibles
+    private int screenWidth;
+    private int screenHeight;
 
+    // VISIBLE GAME PLAY AREA
+    // These variables are set in the constructor
+    int VISIBLE_LEFT;
+    int VISIBLE_TOP;
+    int VISIBLE_RIGHT;
+    int VISIBLE_BOTTOM;
 
-    // -----------------------------------
-    // ## GAME SPECIFIC VARIABLES
-    // -----------------------------------
+    // SPRITES
+    Square bullet;
+    int SQUARE_WIDTH = 100;
 
-    // ----------------------------
-    // ## SPRITES
-    // ----------------------------
+    Square enemy;
 
-    // ----------------------------
-    // ## GAME STATS - number of lives, score, etc
-    // ----------------------------
+    Sprite player;
+    Sprite sparrow;
 
+    ArrayList<Square> bullets = new ArrayList<Square>();
 
-    public GameEngine(Context context, int w, int h) {
+    // GAME STATS
+    int score = 0;
+
+    public GameEngine(Context context, int screenW, int screenH) {
         super(context);
 
-
+        // intialize the drawing variables
         this.holder = this.getHolder();
         this.paintbrush = new Paint();
 
-        this.screenWidth = w;
-        this.screenHeight = h;
+        // set screen height and width
+        this.screenWidth = screenW;
+        this.screenHeight = screenH;
+
+        // setup visible game play area variables
+        this.VISIBLE_LEFT = 20;
+        this.VISIBLE_TOP = 10;
+        this.VISIBLE_RIGHT = this.screenWidth - 20;
+        this.VISIBLE_BOTTOM = (int) (this.screenHeight * 0.8);
 
 
-        this.printScreenInfo();
-
-        // @TODO: Add your sprites to this section
-        // This is optional. Use it to:
-        //  - setup or configure your sprites
-        //  - set the initial position of your sprites
-
-
-        // @TODO: Any other game setup stuff goes here
-
-
+        // initalize sprites
+        this.player = new Sprite(this.getContext(), 100, 700, R.drawable.player64);
+        this.sparrow = new Sprite(this.getContext(), 500, 200, R.drawable.bird64);
     }
 
-    // ------------------------------
-    // HELPER FUNCTIONS
-    // ------------------------------
-
-    // This funciton prints the screen height & width to the screen.
-    private void printScreenInfo() {
-
-        Log.d(TAG, "Screen (w, h) = " + this.screenWidth + "," + this.screenHeight);
-    }
-
-
-    // ------------------------------
-    // GAME STATE FUNCTIONS (run, stop, start)
-    // ------------------------------
     @Override
     public void run() {
         while (gameIsRunning == true) {
-            this.updatePositions();
-            this.redrawSprites();
-            this.setFPS();
+            updateGame();    // updating positions of stuff
+            redrawSprites(); // drawing the stuff
+            controlFPS();
+        }
+    }
+
+    // Game Loop methods
+    public void updateGame() {
+    }
+
+
+    public void outputVisibleArea() {
+        Log.d(TAG, "DEBUG: The visible area of the screen is:");
+        Log.d(TAG, "DEBUG: Maximum w,h = " + this.screenWidth +  "," + this.screenHeight);
+        Log.d(TAG, "DEBUG: Visible w,h =" + VISIBLE_RIGHT + "," + VISIBLE_BOTTOM);
+        Log.d(TAG, "-------------------------------------");
+    }
+
+
+
+    public void redrawSprites() {
+        if (holder.getSurface().isValid()) {
+
+            // initialize the canvas
+            canvas = holder.lockCanvas();
+            // --------------------------------
+
+            // set the game's background color
+            canvas.drawColor(Color.argb(255,255,255,255));
+
+            // setup stroke style and width
+            paintbrush.setStyle(Paint.Style.FILL);
+            paintbrush.setStrokeWidth(8);
+
+            // --------------------------------------------------------
+            // draw boundaries of the visible space of app
+            // --------------------------------------------------------
+            paintbrush.setStyle(Paint.Style.STROKE);
+            paintbrush.setColor(Color.argb(255, 0, 128, 0));
+
+            canvas.drawRect(VISIBLE_LEFT, VISIBLE_TOP, VISIBLE_RIGHT, VISIBLE_BOTTOM, paintbrush);
+            this.outputVisibleArea();
+
+            // --------------------------------------------------------
+            // draw player and sparrow
+            // --------------------------------------------------------
+
+            // 1. player
+            canvas.drawBitmap(this.player.getImage(), this.player.getxPosition(), this.player.getyPosition(), paintbrush);
+
+            // 2. sparrow
+            canvas.drawBitmap(this.sparrow.getImage(), this.sparrow.getxPosition(), this.sparrow.getyPosition(), paintbrush);
+
+            // --------------------------------------------------------
+            // draw hitbox on player
+            // --------------------------------------------------------
+            Rect r = player.getHitbox();
+            paintbrush.setStyle(Paint.Style.STROKE);
+            canvas.drawRect(r, paintbrush);
+
+
+            // --------------------------------------------------------
+            // draw hitbox on player
+            // --------------------------------------------------------
+            paintbrush.setTextSize(60);
+            paintbrush.setStrokeWidth(5);
+            String screenInfo = "Screen size: (" + this.screenWidth + "," + this.screenHeight + ")";
+            canvas.drawText(screenInfo, 10, 100, paintbrush);
+
+            // --------------------------------
+            holder.unlockCanvasAndPost(canvas);
+        }
+
+    }
+
+    public void controlFPS() {
+        try {
+            gameThread.sleep(17);
+        }
+        catch (InterruptedException e) {
+
         }
     }
 
 
+    // Deal with user input
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction() & MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_UP:
+                break;
+            case MotionEvent.ACTION_DOWN:
+                break;
+        }
+        return true;
+    }
+
+    // Game status - pause & resume
     public void pauseGame() {
         gameIsRunning = false;
         try {
             gameThread.join();
-        } catch (InterruptedException e) {
-            // Error
+        }
+        catch (InterruptedException e) {
+
         }
     }
-
-    public void startGame() {
+    public void  resumeGame() {
         gameIsRunning = true;
         gameThread = new Thread(this);
         gameThread.start();
     }
 
-
-    // ------------------------------
-    // GAME ENGINE FUNCTIONS
-    // - update, draw, setFPS
-    // ------------------------------
-
-    // 1. Tell Android the (x,y) positions of your sprites
-    public void updatePositions() {
-        // @TODO: Update the position of the sprites
-
-        // @TODO: Collision detection code
-
-    }
-
-    // 2. Tell Android to DRAW the sprites at their positions
-    public void redrawSprites() {
-        if (this.holder.getSurface().isValid()) {
-            this.canvas = this.holder.lockCanvas();
-
-            //----------------
-            // Put all your drawing code in this section
-
-            // configure the drawing tools
-            this.canvas.drawColor(Color.argb(255,0,0,255));
-            paintbrush.setColor(Color.WHITE);
-
-
-            //@TODO: Draw the sprites (rectangle, circle, etc)
-
-            //@TODO: Draw game statistics (lives, score, etc)
-            paintbrush.setTextSize(60);
-            canvas.drawText("Score: 25", 20, 100, paintbrush);
-
-            //----------------
-            this.holder.unlockCanvasAndPost(canvas);
-        }
-    }
-
-    // Sets the frame rate of the game
-    public void setFPS() {
-        try {
-            gameThread.sleep(50);
-        }
-        catch (Exception e) {
-
-        }
-    }
-
-    // ------------------------------
-    // USER INPUT FUNCTIONS
-    // ------------------------------
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        int userAction = event.getActionMasked();
-        //@TODO: What should happen when person touches the screen?
-        if (userAction == MotionEvent.ACTION_DOWN) {
-            // user pushed down on screen
-        }
-        else if (userAction == MotionEvent.ACTION_UP) {
-            // user lifted their finger
-        }
-        return true;
-    }
 }
