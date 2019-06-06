@@ -41,6 +41,8 @@ public class GameEngine extends SurfaceView implements Runnable {
     // SPRITES
     Square bullet;
     int SQUARE_WIDTH = 100;
+    int initialCatPosX = this.screenWidth - 20 -200;
+    int initialCatPosY = (int) (this.screenHeight * 0.9) -200;
 
     Square enemy;
 
@@ -48,6 +50,7 @@ public class GameEngine extends SurfaceView implements Runnable {
     Sprite sparrow;
     Sprite cat;
     Rect cage;
+    //Rect bullet;
 
     ArrayList<Square> bullets = new ArrayList<Square>();
 
@@ -73,14 +76,19 @@ public class GameEngine extends SurfaceView implements Runnable {
 
 
         // initalize sprites
+        //player
         this.player = new Sprite(this.getContext(), 50, (VISIBLE_RIGHT - 200), R.drawable.player64);
+        //sparrow
         this.sparrow = new Sprite(this.getContext(), 500, 200, R.drawable.bird64);
+        //cat
         this.cat = new Sprite(this.getContext(), (VISIBLE_BOTTOM - 200), (VISIBLE_RIGHT - 200), R.drawable.cat64);
+        //cage
         int initialLeft = screenWidth - 300;
         int initialTop = 20;
         int initialRight = screenWidth - 10;
         int initialBottom = 200;
         cage = new Rect(initialLeft,initialTop, initialRight,initialBottom);
+
 
 
     }
@@ -94,30 +102,69 @@ public class GameEngine extends SurfaceView implements Runnable {
         }
     }
 
-    boolean isMovingLeft = true;
+    boolean isCageMovingLeft = true;
+    boolean isCatMovingLeft = true;
+    boolean isBirdMoving = true;
+
+    long currentTime = 0;
+    long previousTime = 0;
 
     // Game Loop methods
     public void updateGame() {
         //Moving Cage
-        if (isMovingLeft == true) {
+        if (isCageMovingLeft == true) {
             cage.left = cage.left - 10;
             cage.right = cage.right - 10;
         }
 
-        if (isMovingLeft == false){
+        if (isCageMovingLeft == false){
             cage.left = cage.left + 10;
             cage.right = cage.right + 10;
         }
 
         if (cage.left <= 0){
             Log.d(TAG, "You are on left");
-            isMovingLeft = false;
+            isCageMovingLeft = false;
         }
 
         if (cage.right >= screenWidth){
             Log.d(TAG, "You are on right");
-            isMovingLeft = true;
+            isCageMovingLeft = true;
         }
+
+
+        //moving cat
+        Log.d(TAG, "X = " + this.cat.getxPosition());
+        if (isCatMovingLeft == true) {
+            this.cat.setxPosition(this.cat.getxPosition() - 20);
+        }
+
+        if (isCatMovingLeft == false){
+            this.cat.setxPosition(this.cat.getxPosition() + 20);
+        }
+
+        if (this.cat.getxPosition() <= (screenWidth / 3)){
+            Log.d(TAG, "You are on left");
+            isCatMovingLeft = false;
+        }
+
+        if ((this.cat.getxPosition() - 150) >= screenWidth){
+            Log.d(TAG, "You are on right");
+            isCatMovingLeft = true;
+        }
+
+
+        //moving bird
+
+        int[] newcoor;
+        newcoor = randcoor();
+        currentTime = System.currentTimeMillis();
+        if ((currentTime - previousTime) > 2000) {
+            this.sparrow.setxPosition(newcoor[0] + (screenWidth / 2));
+            this.sparrow.setyPosition(newcoor[1]);
+            previousTime = currentTime;
+        }
+
     }
 
 
@@ -197,8 +244,8 @@ public class GameEngine extends SurfaceView implements Runnable {
     }
 
     public int[] randcoor(){
-        int x = screenWidth;
-        int y = screenHeight;
+        int x = screenWidth / 2;
+        int y = screenHeight - 150;
         Random randX = new Random();
         int rx = randX.nextInt(x+1);
         Random randY = new Random();
@@ -224,6 +271,7 @@ public class GameEngine extends SurfaceView implements Runnable {
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_UP:
+
                 break;
             case MotionEvent.ACTION_DOWN:
                 break;
