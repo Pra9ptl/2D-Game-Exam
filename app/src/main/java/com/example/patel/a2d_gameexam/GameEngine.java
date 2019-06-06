@@ -184,15 +184,18 @@ public class GameEngine extends SurfaceView implements Runnable {
         //cage dropping
         if(this.bullet.getHitbox().intersect(this.cageHitBox)){
             iscageMovingDown = true;
-                cage.top = cage.top - 10;
-                cage.bottom = cage.right - 10;
-                cageHitBox.top = cage.top - 10;
-                cageHitBox.bottom = cage.bottom - 10;
+        }
+
+        if(iscageMovingDown && this.cage.bottom <= VISIBLE_RIGHT) {
+            cage.top = cage.top + 10;
+            cage.bottom = cage.bottom + 10;
+            cageHitBox.top = cage.top + 10;
+            cageHitBox.bottom = cage.bottom + 10;
         }
 
         //win conditions
         if(!this.cageHitBox.intersect(this.sparrow.getHitbox())) {
-            if (((this.cageHitBox.bottom + this.cageHitBox.top) >= this.cat.getHitbox().top) && (this.cageHitBox.bottom <= this.cat.getHitbox().top + this.cat.getHitbox().right)) {
+            if (this.cat.getHitbox().intersect(this.cageHitBox)) {
                 canvas.drawText("You Win", (screenWidth/2), (screenHeight/2), paintbrush);
                 iscatMoving = false;
                 isBirdMoving = false;
@@ -200,6 +203,9 @@ public class GameEngine extends SurfaceView implements Runnable {
             }
         } else {
             canvas.drawText("You Loose", (screenWidth/2), (screenHeight/2), paintbrush);
+            iscatMoving = false;
+            isBirdMoving = false;
+            isCageMoving = false;
         }
     }
 
