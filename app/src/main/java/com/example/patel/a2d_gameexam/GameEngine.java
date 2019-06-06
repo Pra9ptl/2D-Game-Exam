@@ -76,6 +76,11 @@ public class GameEngine extends SurfaceView implements Runnable {
         this.player = new Sprite(this.getContext(), 50, (VISIBLE_RIGHT - 200), R.drawable.player64);
         this.sparrow = new Sprite(this.getContext(), 500, 200, R.drawable.bird64);
         this.cat = new Sprite(this.getContext(), (VISIBLE_BOTTOM - 200), (VISIBLE_RIGHT - 200), R.drawable.cat64);
+        int initialLeft = screenWidth - 300;
+        int initialTop = 20;
+        int initialRight = screenWidth - 10;
+        int initialBottom = 200;
+        cage = new Rect(initialLeft,initialTop, initialRight,initialBottom);
 
 
     }
@@ -142,11 +147,8 @@ public class GameEngine extends SurfaceView implements Runnable {
             //4. Cage
             paintbrush.setStyle(Paint.Style.STROKE);
             paintbrush.setColor(Color.RED);
-            int initialLeft = screenWidth - 300;
-            int initialTop = 20;
-            int initialRight = screenWidth - 10;
-            int initialBottom = 90;
-            canvas.drawRect(initialLeft,initialTop, initialRight,initialBottom, paintbrush);
+
+            canvas.drawRect(cage, paintbrush);
 
             // --------------------------------------------------------
             // draw hitbox on player
