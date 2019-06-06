@@ -13,6 +13,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class GameEngine extends SurfaceView implements Runnable {
     private final String TAG = "SPARROW";
@@ -45,6 +46,7 @@ public class GameEngine extends SurfaceView implements Runnable {
 
     Sprite player;
     Sprite sparrow;
+    Sprite cat;
 
     ArrayList<Square> bullets = new ArrayList<Square>();
 
@@ -65,13 +67,17 @@ public class GameEngine extends SurfaceView implements Runnable {
         // setup visible game play area variables
         this.VISIBLE_LEFT = 20;
         this.VISIBLE_TOP = 10;
-        this.VISIBLE_RIGHT = this.screenWidth - 20;
-        this.VISIBLE_BOTTOM = (int) (this.screenHeight * 0.8);
+        this.VISIBLE_BOTTOM = this.screenWidth - 20;
+        this.VISIBLE_RIGHT = (int) (this.screenHeight * 0.9);
 
 
         // initalize sprites
-        this.player = new Sprite(this.getContext(), 100, 700, R.drawable.player64);
+        this.player = new Sprite(this.getContext(), 50, (VISIBLE_RIGHT - 200), R.drawable.player64);
         this.sparrow = new Sprite(this.getContext(), 500, 200, R.drawable.bird64);
+        Log.d(TAG,"Bottom " + (VISIBLE_BOTTOM - 20));
+        Log.d(TAG,"Right " + (VISIBLE_RIGHT - 20));
+        this.cat = new Sprite(this.getContext(), (VISIBLE_BOTTOM - 200), (VISIBLE_RIGHT - 200), R.drawable.cat64);
+
     }
 
     @Override
@@ -117,7 +123,7 @@ public class GameEngine extends SurfaceView implements Runnable {
             paintbrush.setStyle(Paint.Style.STROKE);
             paintbrush.setColor(Color.argb(255, 0, 128, 0));
 
-            canvas.drawRect(VISIBLE_LEFT, VISIBLE_TOP, VISIBLE_RIGHT, VISIBLE_BOTTOM, paintbrush);
+            canvas.drawRect(VISIBLE_LEFT, VISIBLE_TOP, VISIBLE_BOTTOM, VISIBLE_RIGHT, paintbrush);
             this.outputVisibleArea();
 
             // --------------------------------------------------------
@@ -129,6 +135,8 @@ public class GameEngine extends SurfaceView implements Runnable {
 
             // 2. sparrow
             canvas.drawBitmap(this.sparrow.getImage(), this.sparrow.getxPosition(), this.sparrow.getyPosition(), paintbrush);
+
+            canvas.drawBitmap(this.cat.getImage(), this.cat.getxPosition(), this.cat.getyPosition(), paintbrush);
 
             // --------------------------------------------------------
             // draw hitbox on player
@@ -144,12 +152,25 @@ public class GameEngine extends SurfaceView implements Runnable {
             paintbrush.setTextSize(60);
             paintbrush.setStrokeWidth(5);
             String screenInfo = "Screen size: (" + this.screenWidth + "," + this.screenHeight + ")";
-            canvas.drawText(screenInfo, 10, 100, paintbrush);
+            canvas.drawText(screenInfo, 30, 100, paintbrush);
 
             // --------------------------------
             holder.unlockCanvasAndPost(canvas);
         }
 
+    }
+
+    public int[] randcoor(){
+        int x = screenWidth;
+        int y = screenHeight;
+        Random randX = new Random();
+        int rx = randX.nextInt(x+1);
+        Random randY = new Random();
+        int ry = randY.nextInt(y+1);
+        int[] coor = new int[2];
+        coor[0] = rx;
+        coor[1] = ry;
+        return coor;
     }
 
     public void controlFPS() {
