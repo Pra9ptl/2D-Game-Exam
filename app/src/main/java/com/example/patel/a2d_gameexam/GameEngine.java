@@ -50,8 +50,6 @@ public class GameEngine extends SurfaceView implements Runnable {
     Sprite sparrow;
     Sprite cat;
     Rect cage;
-    //Rect bullet;
-
     ArrayList<Square> bullets = new ArrayList<Square>();
 
     // GAME STATS
@@ -89,6 +87,8 @@ public class GameEngine extends SurfaceView implements Runnable {
         int initialBottom = 200;
         cage = new Rect(initialLeft,initialTop, initialRight,initialBottom);
 
+        //bullet
+        bullet = new Square(getContext(), (this.player.getxPosition()+80), this.player.getyPosition(), 50);
 
 
     }
@@ -165,6 +165,28 @@ public class GameEngine extends SurfaceView implements Runnable {
             previousTime = currentTime;
         }
 
+
+        //moving bullet
+        Log.d(TAG,"user X = " + userX);
+        Log.d(TAG,"user X = " + userX);
+        Log.d(TAG,"bullet X = " + this.bullet.getxPosition());
+        if(userX == 0 && userY == 0){
+
+        } else {
+            if ((this.bullet.getxPosition() != userX) && (this.bullet.getyPosition() != userY)) {
+                Log.d(TAG, "User is true");
+                this.bullet.setxPosition(this.bullet.getxPosition() + 5);
+                this.bullet.setyPosition(this.bullet.getyPosition() - 5);
+            } else {
+                this.bullet.setxPosition(userX);
+                this.bullet.setyPosition(userY);
+            }
+        }
+
+
+
+
+
     }
 
 
@@ -238,6 +260,12 @@ public class GameEngine extends SurfaceView implements Runnable {
             canvas.drawText(screenInfo, 30, 100, paintbrush);
 
             // --------------------------------
+
+            //draw bullet
+            paintbrush.setStyle(Paint.Style.FILL);
+            paintbrush.setColor(Color.MAGENTA);
+            canvas.drawRect(this.bullet.getxPosition(), this.bullet.getyPosition(), (this.bullet.getxPosition()+ this.bullet.getWidth()), (this.bullet.getyPosition()+ this.bullet.getWidth()), paintbrush);
+            //------------------------
             holder.unlockCanvasAndPost(canvas);
         }
 
@@ -256,6 +284,7 @@ public class GameEngine extends SurfaceView implements Runnable {
         return coor;
     }
 
+
     public void controlFPS() {
         try {
             gameThread.sleep(17);
@@ -266,12 +295,16 @@ public class GameEngine extends SurfaceView implements Runnable {
     }
 
 
+    int userX = 0;
+    int userY = 0;
     // Deal with user input
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_UP:
-
+                userX = (int)event.getX();
+                userY = (int)event.getY();
+                //this.makeBullet();
                 break;
             case MotionEvent.ACTION_DOWN:
                 break;
