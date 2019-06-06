@@ -50,6 +50,7 @@ public class GameEngine extends SurfaceView implements Runnable {
     Sprite sparrow;
     Sprite cat;
     Rect cage;
+    Rect cageHitBox;
     ArrayList<Square> bullets = new ArrayList<Square>();
 
     // GAME STATS
@@ -86,7 +87,7 @@ public class GameEngine extends SurfaceView implements Runnable {
         int initialRight = screenWidth - 10;
         int initialBottom = 200;
         cage = new Rect(initialLeft,initialTop, initialRight,initialBottom);
-
+        cageHitBox = new Rect(initialLeft,initialTop, initialRight,initialBottom);
         //bullet
         bullet = new Square(getContext(), (this.player.getxPosition()+80), this.player.getyPosition(), 50);
 
@@ -103,6 +104,9 @@ public class GameEngine extends SurfaceView implements Runnable {
     }
 
     boolean isCageMovingLeft = true;
+    boolean iscageMovingDown = false;
+    boolean isCageMoving = true;
+    boolean iscatMoving = true;
     boolean isCatMovingLeft = true;
     boolean isBirdMoving = true;
 
@@ -112,81 +116,91 @@ public class GameEngine extends SurfaceView implements Runnable {
     // Game Loop methods
     public void updateGame() {
         //Moving Cage
-        if (isCageMovingLeft == true) {
-            cage.left = cage.left - 10;
-            cage.right = cage.right - 10;
-        }
+        if(isCageMoving && iscageMovingDown == false) {
+            if (isCageMovingLeft == true) {
+                cage.left = cage.left - 10;
+                cage.right = cage.right - 10;
+                cageHitBox.left = cage.left - 10;
+                cageHitBox.right = cage.right - 10;
+            }
 
-        if (isCageMovingLeft == false){
-            cage.left = cage.left + 10;
-            cage.right = cage.right + 10;
-        }
+            if (isCageMovingLeft == false) {
+                cage.left = cage.left + 10;
+                cage.right = cage.right + 10;
+                cageHitBox.left = cage.left + 10;
+                cageHitBox.right = cage.right + 10;
+            }
 
-        if (cage.left <= 0){
-            Log.d(TAG, "You are on left");
-            isCageMovingLeft = false;
-        }
+            if (cage.left <= 0) {
+                Log.d(TAG, "You are on left");
+                isCageMovingLeft = false;
+            }
 
-        if (cage.right >= screenWidth){
-            Log.d(TAG, "You are on right");
-            isCageMovingLeft = true;
+            if (cage.right >= screenWidth) {
+                Log.d(TAG, "You are on right");
+                isCageMovingLeft = true;
+            }
         }
-
 
         //moving cat
-        Log.d(TAG, "X = " + this.cat.getxPosition());
-        if (isCatMovingLeft == true) {
-            this.cat.setxPosition(this.cat.getxPosition() - 20);
-        }
+        if(iscatMoving) {
+            Log.d(TAG, "X = " + this.cat.getxPosition());
+            if (isCatMovingLeft == true) {
+                this.cat.setxPosition(this.cat.getxPosition() - 20);
+            }
 
-        if (isCatMovingLeft == false){
-            this.cat.setxPosition(this.cat.getxPosition() + 20);
-        }
+            if (isCatMovingLeft == false) {
+                this.cat.setxPosition(this.cat.getxPosition() + 20);
+            }
 
-        if (this.cat.getxPosition() <= (screenWidth / 3)){
-            Log.d(TAG, "You are on left");
-            isCatMovingLeft = false;
-        }
+            if (this.cat.getxPosition() <= (screenWidth / 3)) {
+                Log.d(TAG, "You are on left");
+                isCatMovingLeft = false;
+            }
 
-        if ((this.cat.getxPosition() - 150) >= screenWidth){
-            Log.d(TAG, "You are on right");
-            isCatMovingLeft = true;
-        }
-
-
-        //moving bird
-
-        int[] newcoor;
-        newcoor = randcoor();
-        currentTime = System.currentTimeMillis();
-        if ((currentTime - previousTime) > 2000) {
-            this.sparrow.setxPosition(newcoor[0] + (screenWidth / 2));
-            this.sparrow.setyPosition(newcoor[1]);
-            previousTime = currentTime;
-        }
-
-
-        //moving bullet
-        Log.d(TAG,"user X = " + userX);
-        Log.d(TAG,"user X = " + userX);
-        Log.d(TAG,"bullet X = " + this.bullet.getxPosition());
-        if(userX == 0 && userY == 0){
-
-        } else {
-            if ((this.bullet.getxPosition() != userX) && (this.bullet.getyPosition() != userY)) {
-                Log.d(TAG, "User is true");
-                this.bullet.setxPosition(this.bullet.getxPosition() + 5);
-                this.bullet.setyPosition(this.bullet.getyPosition() - 5);
-            } else {
-                this.bullet.setxPosition(userX);
-                this.bullet.setyPosition(userY);
+            if ((this.cat.getxPosition() - 150) >= screenWidth) {
+                Log.d(TAG, "You are on right");
+                isCatMovingLeft = true;
             }
         }
 
 
+        //moving bird
+        if(isBirdMoving) {
+            int[] newcoor;
+            newcoor = randcoor();
+            currentTime = System.currentTimeMillis();
+            if ((currentTime - previousTime) > 2000) {
+                this.sparrow.setxPosition(newcoor[0] + (screenWidth / 2));
+                this.sparrow.setyPosition(newcoor[1]);
+                previousTime = currentTime;
+            }
+        }
 
+        //moving bullet
+        if(userX != 0 && userY != 0) {
+            this.bullet.setHitbox(new Rect(userX, userY, userX + this.bullet.getWidth(), userY + this.bullet.getWidth()));
+        }
+        //cage dropping
+        if(this.bullet.getHitbox().intersect(this.cageHitBox)){
+            iscageMovingDown = true;
+                cage.top = cage.top - 10;
+                cage.bottom = cage.right - 10;
+                cageHitBox.top = cage.top - 10;
+                cageHitBox.bottom = cage.bottom - 10;
+        }
 
-
+        //win conditions
+        if(!this.cageHitBox.intersect(this.sparrow.getHitbox())) {
+            if (((this.cageHitBox.bottom + this.cageHitBox.top) >= this.cat.getHitbox().top) && (this.cageHitBox.bottom <= this.cat.getHitbox().top + this.cat.getHitbox().right)) {
+                canvas.drawText("You Win", (screenWidth/2), (screenHeight/2), paintbrush);
+                iscatMoving = false;
+                isBirdMoving = false;
+                isCageMoving = false;
+            }
+        } else {
+            canvas.drawText("You Loose", (screenWidth/2), (screenHeight/2), paintbrush);
+        }
     }
 
 
@@ -236,10 +250,12 @@ public class GameEngine extends SurfaceView implements Runnable {
             canvas.drawBitmap(this.cat.getImage(), this.cat.getxPosition(), this.cat.getyPosition(), paintbrush);
 
             //4. Cage
-            paintbrush.setStyle(Paint.Style.STROKE);
+            paintbrush.setStyle(Paint.Style.FILL);
             paintbrush.setColor(Color.RED);
-
             canvas.drawRect(cage, paintbrush);
+            paintbrush.setStyle(Paint.Style.STROKE);
+            paintbrush.setColor(Color.YELLOW);
+            canvas.drawRect(cageHitBox, paintbrush);
 
             // --------------------------------------------------------
             // draw hitbox on player
@@ -262,9 +278,12 @@ public class GameEngine extends SurfaceView implements Runnable {
             // --------------------------------
 
             //draw bullet
+            paintbrush.setStyle(Paint.Style.STROKE);
+            paintbrush.setColor(Color.BLACK);
+            canvas.drawRect(this.bullet.getHitbox(), paintbrush);
             paintbrush.setStyle(Paint.Style.FILL);
             paintbrush.setColor(Color.MAGENTA);
-            canvas.drawRect(this.bullet.getxPosition(), this.bullet.getyPosition(), (this.bullet.getxPosition()+ this.bullet.getWidth()), (this.bullet.getyPosition()+ this.bullet.getWidth()), paintbrush);
+            canvas.drawRect(this.bullet.getHitbox(), paintbrush);
             //------------------------
             holder.unlockCanvasAndPost(canvas);
         }
